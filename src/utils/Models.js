@@ -991,11 +991,9 @@ class GetRoomUsersRequest {
   }
 }
 
-/*
 class SendPayloadWithoutResponse {
   constructor(bot) {
     this.bot = bot;
-    this.bot.ws.setMaxListeners(20);
   }
 
   sendPayloadWithoutResponse(payload) {
@@ -1006,34 +1004,31 @@ class SendPayloadWithoutResponse {
     return new Promise((resolve, reject) => {
       const errorHandler = (event) => {
         if (event.data) {
-          const data = JSON.parse(event.data);
-          if (data._type === 'Error') {
-            reject(new Error(data.data?.message || data.message));
+          const errorData = JSON.parse(event.data);
+          if (errorData._type === 'Error') {
+            this.bot.ws.removeEventListener('message', errorHandler);
+            reject(new Error(errorData.data?.message || errorData.message));
           } else {
+            this.bot.ws.removeEventListener('message', errorHandler);
             resolve();
           }
         }
-
-        this.bot.ws.removeEventListener('message', errorHandler);
-      };
+      }
 
       this.bot.ws.addEventListener('message', errorHandler);
-
       this.bot.ws.send(JSON.stringify(payload), (error) => {
         if (error) {
+          this.bot.ws.removeEventListener('message', errorHandler);
           reject(error);
         }
       });
-
     });
   }
 }
 
-
 class SendPayloadAndGetResponse {
   constructor(bot) {
     this.bot = bot;
-    this.bot.ws.setMaxListeners(20);
   }
 
   sendPayloadAndGetResponse(payload, responseClass) {
@@ -1044,101 +1039,41 @@ class SendPayloadAndGetResponse {
     return new Promise((resolve, reject) => {
       const requestId = generateRid();
 
-      const messageHandler = (event) => {
-        try {
-          const messageObject = JSON.parse(event.data);
+      const errorHandler = (event) => {
+        const errorData = JSON.parse(event.data);
+        if (errorData._type === 'Error') {
+          this.bot.ws.removeEventListener('message', errorHandler);
+          this.bot.ws.removeEventListener('message', messageHandler);
+          reject(new Error(errorData.message));
+        }
+      };
 
-          if (messageObject._type === 'Error') {
-            reject(new Error(messageObject.message));
-          } else if (messageObject._type === responseClass.name && messageObject.rid === requestId) {
+      const messageHandler = (message) => {
+        try {
+          const messageObject = JSON.parse(message.data);
+
+          if (messageObject._type === responseClass.name && messageObject.rid === requestId) {
+            this.bot.ws.removeEventListener('message', errorHandler);
+            this.bot.ws.removeEventListener('message', messageHandler);
             resolve(new responseClass(messageObject, requestId));
           }
         } catch (error) {
+          this.bot.ws.removeEventListener('message', errorHandler);
+          this.bot.ws.removeEventListener('message', messageHandler);
           reject(new Error("Received message is not valid JSON"));
         }
-
-        this.bot.ws.removeEventListener('message', messageHandler);
       };
 
+      this.bot.ws.addEventListener('message', errorHandler);
       this.bot.ws.addEventListener('message', messageHandler);
-
       this.bot.ws.send(JSON.stringify({ ...payload, rid: requestId }), (error) => {
         if (error) {
+          this.bot.ws.removeEventListener('message', errorHandler);
+          this.bot.ws.removeEventListener('message', messageHandler);
           reject(error);
         }
       });
     });
-  }
-}
-*/
-
-class SendPayloadWithoutResponse {
-  constructor(bot) {
-    this.bot = bot;
-  }
-
-  sendPayloadWithoutResponse(payload) {
-    if (this.bot.isWebSocketOpen() && this.bot.ws !== null) {
-      return new Promise((resolve, reject) => {
-        const errorHandler = (event) => {
-          if (event.data) {
-            const data = JSON.parse(event.data);
-            if (data._type === 'Error') {
-              reject(new Error(data.data?.message || data.message));
-            } else {
-              resolve();
-            }
-          }
-
-          this.bot.ws.removeEventListener('message', errorHandler);
-        };
-
-        this.bot.ws.addEventListener('message', errorHandler);
-
-        this.bot.ws.send(JSON.stringify(payload), (error) => {
-          if (error) {
-            reject(error);
-          }
-        });
-
-      });
-    } else {
-      return Promise.reject(new HighrisejsError(ErrorCodes.WebSocketNotOpen));
-    }
-  }
-}
-
-class SendPayloadAndGetResponse {
-  constructor(bot) {
-    this.bot = bot;
-    this.reqId = generateRid();
-  }
-
-  sendPayloadAndGetResponse(payload, responseClass) {
-    if (this.bot.isWebSocketOpen() && this.bot.ws !== null) {
-
-      return new Promise((resolve, reject) => {
-        const reqId = this.reqId;
-
-        const messageHandler = (message) => {
-          const messageObject = JSON.parse(message);
-          if (messageObject._type === responseClass.name && messageObject.rid === reqId) {
-            this.bot.ws.off('message', messageHandler);
-            resolve(new responseClass(messageObject, reqId))
-          }
-        };
-
-        this.bot.ws.on('message', messageHandler);
-        this.bot.ws.send(JSON.stringify({ ...payload, rid: reqId }), (error) => {
-          if (error) {
-            reject(error);
-          }
-        })
-      })
-
-    } else {
-      return Promise.reject(new HighrisejsError(ErrorCodes.WebSocketNotOpen));
-    }
   }
 }
 
