@@ -57,6 +57,7 @@ class WebSocketManager extends EventEmitter {
         }
       });
 
+      this.ws.setMaxListeners(100);
       this.connected = true;
       this.ws.addEventListener('open', this._onOpen);
       this.ws.addEventListener('message', this._onMessage);
@@ -177,7 +178,7 @@ class WebSocketManager extends EventEmitter {
       this.info.owner.id = data.room_info.owner_id ?? null;
       this.info.connection_id = data.connection_id ?? null;
       if (this.Cache) {
-        this.room.cache.FetchUserCollection();
+        await this.room.cache.FetchUserCollection();
       }
     }
 
