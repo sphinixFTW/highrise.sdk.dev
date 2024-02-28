@@ -1,16 +1,6 @@
 // DOM types required for undici
 /// <reference lib="dom" />
 
-declare module 'node:events' {
-  class EventEmitter {
-    // Add type overloads for client events.
-    public static once<E extends EventEmitter, K extends keyof ClientEvents>(
-      eventEmitter: E,
-      eventName: E extends Client ? K : string,
-    ): Promise<E extends Client ? ClientEvents[K] : any[]>;
-  }
-}
-
 export interface User {
   id: string;
   username: string;
@@ -239,15 +229,6 @@ interface CollectionConstructor {
 type ReadOnlyCollection<K, V> = Omit<Collection<K, V>, 'delete' | 'ensure' | 'forEach' | 'get' | 'reverse' | 'set' | 'sort' | 'sweep' | 'update'> & ReadonlyMap<K, V>;
 
 /**
- * Separate interface for the constructor so that emitted js does not have a constructor that overwrites itself
- *
- * @internal
- */
-interface Collection<K, V> extends Map<K, V> {
-  constructor: CollectionConstructor;
-}
-
-/**
  * A map with additional utility methods. Keys must be strings.
  * 
  * @typeParam K - The key type
@@ -376,6 +357,20 @@ declare class Collection<K, V> extends Map<K, V> {
    * console.log(collection.get('a')); // 'e'
    */
   update(key: K, value: V): this;
+}
+
+
+export class WebSocketManager {
+  on<K extends keyof ClientEvents>(event: K, listener: (...args: ClientEvents[K]) => void): this;
+  once<K extends keyof ClientEvents>(event: K, listener: (...args: ClientEvents[K]) => void): this;
+  on<S extends string | symbol>(
+    event: Exclude<S, keyof ClientEvents>,
+    listener: (...args: any[]) => void,
+  ): this;
+  once<S extends string | symbol>(
+    event: Exclude<S, keyof ClientEvents>,
+    listener: (...args: any[]) => void,
+  ): this;
 }
 
 export class Highrise extends WebSocketManager {
@@ -630,7 +625,7 @@ export class AwaitMethods {
    * if (!success.length) return bot.direct.send(conversation_id, "You did not send the correct message.");
    * // Do something with the message.
   */
-  awaitDirectMessages(options: { filter: function | null, max: number | null, timer: number }): Promise<Message[]>;
+  awaitDirectMessages(options: { filter: Function | null, max: number | null, timer: number }): Promise<Message[]>;
 
   /**
    * Await a emote;
@@ -656,7 +651,7 @@ export class AwaitMethods {
    * if (!success.length) return bot.message.send("You did not send the correct emote.");
    * // Do something with the emote.
    */
-  awaitEmotes(options: { filter: function | null, max: number | null, timer: number }): Promise<Message[]>;
+  awaitEmotes(options: { filter: Function | null, max: number | null, timer: number }): Promise<Message[]>;
 
   /**
    * Await a tip.
@@ -682,7 +677,7 @@ export class AwaitMethods {
    * if (!success.length) return bot.message.send("You did not send the correct tip.");
    * // Do something with the tip.
    */
-  awaitTips(options: { filter: function, max: number, timer: number }): Promise<Message[]>;
+  awaitTips(options: { filter: Function, max: number, timer: number }): Promise<Message[]>;
 
   /**
    * Await a reaction.
@@ -709,7 +704,7 @@ export class AwaitMethods {
    * 
    * // Do something with the reaction.
    */
-  awaitReactions(options: { filter: function, max: number, timer: number }): Promise<Message[]>;
+  awaitReactions(options: { filter: Function, max: number, timer: number }): Promise<Message[]>;
 
 
   /**
@@ -735,7 +730,7 @@ export class AwaitMethods {
    * if (!success.length) return bot.message.send("You did not send the correct message.");
    * // Do something with the message.
    */
-  awaitMessages(options: { filter: function | null, max: number | null, timer: number }): Promise<Message[]>;
+  awaitMessages(options: { filter: Function | null, max: number | null, timer: number }): Promise<Message[]>;
 }
 
 export class Outfit {
@@ -951,7 +946,7 @@ export class Voice {
    * 
    * bot.room.voice.fetch().then(players => console.log(players));
   */
-  fetch: () => Promise<VoiceChat[]>;
+  fetch: () => Promise<any[]>;
 
   get: {
     /**
@@ -1017,7 +1012,7 @@ export class Cache {
    * 
    * bot.room.cache.get().then(players => console.log(players));
   */
-  get: () => Promise<Collection<string, Player>>;
+  get: () => Promise<Collection<string, Players>>;
 
   /**
    * Get the position of a player.
@@ -1099,7 +1094,7 @@ export class Cache {
    * // Filter the cache.
    * bot.room.cache.filter(player => player.position.x === 0);
   */
-  filter: (fn: (value: Player, key: string, collection: Collection<string, Player>) => boolean) => Collection<string, Player>;
+  filter: (fn: (value: any, key: string, collection: Collection<string, any>) => boolean) => Collection<string, any>;
 
   /**
    * Find a player in the cache.
@@ -1113,7 +1108,7 @@ export class Cache {
    * // Find a player in the cache.
    * bot.room.cache.find(player => player.position.x === 0);
   */
-  find: (fn: (value: Player, key: string, collection: Collection<string, Player>) => boolean) => Player | undefined;
+  find: (fn: (value: any, key: string, collection: Collection<string, any>) => boolean) => any | undefined;
 
   /**
    * Map the cache.
@@ -1127,7 +1122,7 @@ export class Cache {
    * // Map the cache.
    * bot.room.cache.map(player => player.position.x);
   */
-  map: (fn: (value: Player, key: string, collection: Collection<string, Player>) => unknown) => unknown[];
+  map: (fn: (value: any, key: string, collection: Collection<string, any>) => unknown) => unknown[];
 }
 
 export class Players {
@@ -1143,7 +1138,7 @@ export class Players {
    * 
    * bot.room.players.get().then(players => console.log(players));
   */
-  get: () => Promise<Collection<string, Player>>;
+  get: () => Promise<Collection<string, any[]>>;
 
   /**
    * Get the position of a player.
@@ -1233,7 +1228,7 @@ export class Users {
    * 
    * bot.player.emote(user_id, Emotes.Confused.id);
   */
-  emote: (user_id: string | null, emote_id: Emotes) => Promise<void>;
+  emote: (user_id: string | null, emote_id: string) => Promise<void>;
 
   /**
    * Perform reaction on a user.
@@ -1649,7 +1644,7 @@ export const WebApi = new class {
    * const { WebApi } = require("highrise.sdk.dev");
    * WebApi.getRoomById("6522ad66f96c4009eb55d5a7").then(room => console.log(room));
   **/
-  getRoomById(id: string): Promise<Room>;
+  getRoomById(id: string): Promise<any[]>;
 
   /**
   * Retrieves the profile of a room.
@@ -1661,7 +1656,7 @@ export const WebApi = new class {
   * const { WebApi } = require("highrise.sdk.dev");
   * WebApi.getRoomByName(user_id, "iHsein's Room").then(room => console.log(room));
  **/
-  getRoomByName(owner_id: string, name: string): Promise<Room>;
+  getRoomByName(owner_id: string, name: string): Promise<any[]>;
 
   /**
    * Retrieves the profile of a room.
@@ -1704,7 +1699,7 @@ export const WebApi = new class {
    * WebApi.getPostById("65134fe40b9cf4e4026aa5b4").then(post => console.log(post));
    * 
   */
-  getPostById(id: string): Promise<Post>;
+  getPostById(id: string): Promise<any>;
 
   /**
     * Retrieves user posts
@@ -1743,7 +1738,7 @@ export const WebApi = new class {
    * const { WebApi } = require("highrise.sdk.dev");
    * WebApi.getGrab("655270f3712573254c14a8a5").then(grab => console.log(grab));
   */
-  getGrab(id: string): Promise<Grab>;
+  getGrab(id: string): Promise<any[]>;
 
   /**
   * Retrieves game grabs
@@ -1817,3 +1812,158 @@ export const WebApi = new class {
   */
   searchItem(limit?: number | null, skip?: number | null, query?: string | null): Promise<object | null>;
 }();
+
+/**
+ * Options for configuring the WelcomeBot.
+ */
+export interface WelcomeBotOptions {
+  auth: {
+    token: string;
+    room_id: string;
+  },
+
+  settings?: {
+    prefix: string;
+    spawn: {
+      enabled: boolean;
+      coordinates: object;
+      object: object;
+      action: "walk" | "sit" | "teleport" | "teleport-walk" | "teleport-sit";
+    },
+    commands: {
+      enabled: boolean;
+      list: object; // {command: {enabled: boolean, message: string, reply: "public" | "whisper"}}
+    }
+  },
+
+  joined?: {
+    enabled: boolean;
+    message: string;
+    type: "public" | "whisper";
+  }
+
+  left?: {
+    enabled: boolean;
+    message: string;
+  }
+
+  logs?: {
+    welcome: boolean;
+    goodbye: boolean;
+    messages: boolean;
+  }
+}
+
+/**
+ * A bot that sends welcome and goodbye messages when users join and leave a room.
+ */
+export class WelcomeBot {
+  options: WelcomeBotOptions;
+
+  /**
+   * The Highrise instance used by the bot.
+  */
+  bot: Highrise;
+
+  /**
+   * Creates a new WelcomeBot.
+   * @param options The options used to configure the bot.
+   */
+  constructor(options: WelcomeBotOptions);
+
+  /**
+   * Handles a user joining.
+   * @param user The user who joined.
+   */
+  onJoin(user: User): void;
+
+  /**
+   * Handles a user leaving.
+   * @param user The user who left.
+   */
+  onLeave(user: User): void;
+
+  /**
+   * Send a message to the room.
+   * @param type The type of message to send.
+   * @param message The message to send.
+   * @param user The user to send the message to.
+  */
+  sendMessage: (type: "public" | "private", message: string, user: User) => void;
+}
+
+
+/**
+ * Options for configuring the DanceFloor.
+ * @interface
+ * @property {number} duration - The interval in seconds to check for players in the dance floor.
+ * @property {boolean} enabled - Enable or disable the dance floor.
+ * @property {Array<Emotes>} emotes - The emotes to perform on the players.
+ * @property {number} groupSize - The size of the groups to split the players into.
+ * @property {number} delay - The delay for group emotes in seconds.
+ * @property {object} parameter - The parameters for the dance floor.
+ * @property {number} parameter.minX - The minimum x position of the dance floor.
+ * @property {number} parameter.maxX - The maximum x position of the dance floor.
+ * @property {number} parameter.minY - The minimum y position of the dance floor.
+ * @property {number} parameter.maxY - The maximum y position of the dance floor.
+ * @property {number} parameter.minZ - The minimum z position of the dance floor.
+ * @property {number} parameter.maxZ - The maximum z position of the dance floor.
+ */
+export interface DanceFloorOptions {
+  /*
+  * The interval in seconds to check for players in the dance floor.
+  * @default 10
+  */
+  duration: number;
+  /*
+  * Enable or disable the dance floor.
+  * @default false
+  */
+  enabled: boolean;
+  /*
+  * The emotes to perform on the players.
+  * @default emotes provided by the community
+  */
+  emotes: Array<any[]>;
+  /*
+  * The size of the groups to split the players into.
+  * @default 5
+  */
+  groupSize: number;
+  /*
+  * The delay for group emotes in seconds.
+  * @default 10
+  */
+  delay: number;
+
+  /**
+   * The parameters for the dance floor.
+   * @param {number} minX - The minimum x position of the dance floor.
+   * @param {number} maxX - The maximum x position of the dance floor.
+   * @param {number} minY - The minimum y position of the dance floor.
+   * @param {number} maxY - The maximum y position of the dance floor.  
+   * @param {number} minZ - The minimum z position of the dance floor.
+   * @param {number} maxZ - The maximum z position of the dance floor.
+  */
+  parameter: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+    minZ: number;
+    maxZ: number;
+  }
+}
+
+export class DanceFloor {
+  constructor(bot: Highrise, options: DanceFloorOptions);
+
+  create: () => void;
+  fetchPlayers: () => Promise<Array<any[]>>;
+  isInArea: (poition: Position) => boolean;
+  splitIntoGroups: (player: Array<any[]>, size: number) => Array<Array<any[]>>;
+}
+
+export class Tools {
+  static DanceFloor: typeof DanceFloor;
+}
