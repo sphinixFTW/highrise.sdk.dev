@@ -9,3 +9,5 @@ exports.GoldBars = require("./utils/Util").GoldBars;
 exports.Reactions = require("./utils/Util").Reactions;
 exports.Emotes = require("./utils/Emotes");
 exports.Collection = require("./utils/Collection");
+exports.WelcomeBot = require("./templates/welcomeBot");
+exports.Tools = require("./utils/tools/Tools");
