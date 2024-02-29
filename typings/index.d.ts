@@ -1373,7 +1373,7 @@ export class Users {
   */
   unmute: (user_id: string) => Promise<void>;
 
-  pemrissions: {
+  permissions: {
     /**
      * Get the permissions of a user.
      * @param {string} user_id - The user ID to get the permissions of.
