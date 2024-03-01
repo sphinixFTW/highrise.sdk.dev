@@ -1,6 +1,8 @@
 'use strict';
 const { HighrisejsError, ErrorCodes, HighriseTypeError } = require("../../errors");
 const { generateRid } = require("../../utils/Util");
+const { defaultOutfit } = require("../../utils/Outfits");
+
 const { SetOutfitRequest, SendPayloadWithoutResponse, BuyItemRequest, SendPayloadAndGetResponse, GetInventoryRequest, GetWalletRequest, BuyRoomBoostRequest, BuyVoiceTimeRequest } = require("../../utils/Models");
 
 class Outfit {
@@ -15,9 +17,14 @@ class Outfit {
 
       if (!this.bot.isWebSocketOpen()) throw new HighrisejsError(ErrorCodes.WebSocketNotOpen);
       if (!outfit) throw new HighriseTypeError(ErrorCodes.MissingParameters, 'outfit');
-      if (!Array.isArray(outfit)) throw new HighriseTypeError(ErrorCodes.InvalidParameterType, 'outfit', 'Array');
+      if (!Array.isArray(outfit) && outfit !== "default") throw new HighriseTypeError(ErrorCodes.InvalidParameterType, 'outfit', 'Array');
 
-      const setOutfitRequest = new SetOutfitRequest(outfit, this.rid);
+      let outfitToChange = outfit;
+      if (!Array.isArray(outfit) && outfit.toLowerCase().trim() === "default") {
+        outfitToChange = defaultOutfit;
+      }
+
+      const setOutfitRequest = new SetOutfitRequest(outfitToChange, this.rid);
       const payload = {
         _type: "SetOutfitRequest",
         ...setOutfitRequest
