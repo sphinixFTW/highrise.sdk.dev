@@ -733,6 +733,21 @@ export class AwaitMethods {
   awaitMessages(options: { filter: Function | null, max: number | null, timer: number }): Promise<Message[]>;
 }
 
+/**
+ * List of available body parts.
+ * @readonly
+ * @enum {string}
+*/
+export enum BodyParts {
+  Hair = "hair",
+  Hair_Front = "hair_front",
+  Hair_Back = "hair_back",
+  Eyes = "eye",
+  Eyebrow = "eyebrow",
+  Lips = "mouth",
+  Skin = "body",
+}
+
 export class Outfit {
   constructor(bot: Highrise);
 
@@ -750,6 +765,20 @@ export class Outfit {
    * bot.outfit.change(outfit);
   */
   change: (outfit: Array<[]>) => Promise<void>;
+
+  /**
+   * Change the color of a body part
+   * @param {BodyParts} BodyPart - The body part to change the color of.
+   * @param {number} color - The color to change to.
+   * 
+   * @example
+   * const { Highrise, BodyParts } = require("highrise.sdk.dev");
+   * const bot = new Highrise();
+   * 
+   * // Change the color of a body part.
+   * bot.outfit.color(BodyParts.Hair, 5);
+  */
+  color: (BodyPart: BodyParts, color: number) => Promise<void>;
 }
 
 export class Items {

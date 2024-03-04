@@ -74,6 +74,47 @@ const Prioreties = {
   UserWalletOnly: 'user_wallet_only'
 }
 
+const BodyParts = {
+  Hair: 'hair',
+  Hair_Front: 'hair_front',
+  Hair_Back: 'hair_back',
+  Eyes: 'eye',
+  Eyebrow: 'eyebrow',
+  Lips: 'mouth',
+  Skin: 'body'
+}
+
+const colorsIndexMinAndMax = {
+  "hair": {
+    min: 0,
+    max: 81
+  },
+  "hair_front": {
+    min: 0,
+    max: 81
+  },
+  "hair_back": {
+    min: 0,
+    max: 81
+  },
+  "eye": {
+    min: 0,
+    max: 49
+  },
+  "eyebrow": {
+    min: 0,
+    max: 81
+  },
+  "mouth": {
+    min: -1,
+    max: 57
+  },
+  "body": {
+    min: 0,
+    max: 86
+  }
+}
+
 module.exports = {
   packageVersion,
   packageAuthor,
@@ -83,5 +124,7 @@ module.exports = {
   Facing,
   GoldBars,
   Reactions,
-  Prioreties
+  Prioreties,
+  BodyParts,
+  colorsIndexMinAndMax
 }

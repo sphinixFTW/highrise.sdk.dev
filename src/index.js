@@ -6,6 +6,7 @@ exports.WebApi = new (require("./client/WebApi"))();
 exports.Events = require("./utils/Events").Events;
 exports.Facing = require("./utils/Util").Facing;
 exports.GoldBars = require("./utils/Util").GoldBars;
+exports.BodyParts = require("./utils/Util").BodyParts;
 exports.Reactions = require("./utils/Util").Reactions;
 exports.Emotes = require("./utils/Emotes");
 exports.Collection = require("./utils/Collection");

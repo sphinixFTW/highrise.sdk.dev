@@ -1,6 +1,6 @@
 'use strict';
 const { HighrisejsError, ErrorCodes, HighriseTypeError } = require("../../errors");
-const { generateRid } = require("../../utils/Util");
+const { generateRid, BodyParts, colorsIndexMinAndMax } = require("../../utils/Util");
 const { defaultOutfit } = require("../../utils/Outfits");
 
 const { SetOutfitRequest, SendPayloadWithoutResponse, BuyItemRequest, SendPayloadAndGetResponse, GetInventoryRequest, GetWalletRequest, BuyRoomBoostRequest, BuyVoiceTimeRequest } = require("../../utils/Models");
@@ -33,6 +33,53 @@ class Outfit {
       const sender = new SendPayloadWithoutResponse(this.bot);
       await sender.sendPayloadWithoutResponse(payload);
 
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async color(bodyPart, index) {
+    try {
+      if (!this.bot.isWebSocketOpen()) throw new HighrisejsError(ErrorCodes.WebSocketNotOpen);
+      if (bodyPart === null || bodyPart === undefined) throw new HighriseTypeError(ErrorCodes.MissingParameters, 'bodyPart');
+      if (index === null || index === undefined) throw new HighriseTypeError(ErrorCodes.MissingParameters, 'index');
+
+      const BodyParts = {
+        Hair: 'hair',
+        Hair_Front: 'hair_front',
+        Hair_Back: 'hair_back',
+        Eyes: 'eye',
+        Eyebrow: 'eyebrow',
+        Lips: 'mouth',
+        Skin: 'body'
+      }
+
+      // the bodyPart can be accessed using BodyParts.Hair, BodyParts.Eyes, etc.
+      if (!Object.values(BodyParts).includes(bodyPart)) throw new HighriseTypeError(ErrorCodes.InvalidParameterType, 'bodyPart', 'string');
+      if (typeof index !== 'number') throw new HighriseTypeError(ErrorCodes.InvalidParameterType, 'index', 'number');
+      if (index < colorsIndexMinAndMax[bodyPart].min || index > colorsIndexMinAndMax[bodyPart].max) throw new HighriseTypeError(ErrorCodes.InvalidParameterType, 'index', `number between ${colorsIndexMinAndMax[bodyPart].min} and ${colorsIndexMinAndMax[bodyPart].max}`);
+
+      let bodyPartsToChange = [];
+      if (bodyPart === "hair") {
+        bodyPartsToChange = [BodyParts.Hair_Front, BodyParts.Hair_Back];
+      } else {
+        bodyPartsToChange = [bodyPart];
+      }
+
+      const outfit = await this.bot.player.outfit.get(this.bot.info.user.id);
+      const updatedOutfit = outfit.map(item => {
+        if (!item) {
+          return Promise.reject(new Error('Item does not exist'));
+        }
+
+        if (bodyPartsToChange.some(part => item.id.startsWith(`${part}-`))) {
+          item.active_palette = index;
+        }
+
+        return item;
+      });
+
+      await this.change(updatedOutfit);
     } catch (error) {
       throw error;
     }
